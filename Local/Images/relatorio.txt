@@ -1,0 +1,24 @@
+ETF Abril/25 Rentabilidade Padrão:
+1 ano: GOLD11 ; CORN11
+2 anos: GOLD11 ; TECK11 ; DIVO11 ; ACWI11 ; USAL11 ; IVVB11 ; NASD11 ; BBOV11 ; SPXI11 ; ELAS11 ; BOVB11 ; MILL11
+PIBB11 ; BDOM11 ; BOVA11 ; BREW11
+5 anos: DIVO11 ; IVVB11 ; PIBB11 ; SPXI11 ; BOVA11 ; BOVB11
+10 anos: DIVO11 ; BRAX11 ; PIBB11 ; BOVA11 ; XBOV11
+
+------------------------------------------------------------------------------------------------------------------------
+
+ETF Abril/25 Rentabilidade Projetada:
+1 ano: GOLD11 ;
+2 anos: GOLD11 ; ACWI11 ; TECK11 ; USAL11 ; IVVB11 ; SPXI11 ; NASD11 ; MILL11 ; DIVO11
+5 anos: DIVO11 ; IVVB11 ; SPXI11
+10 anos: DIVO11 ; PIBB11 ; BOVA11 ; BRAX11 ; XBOV11 ; SMAL11
+
+------------------------------------------------------------------------------------------------------------------------
+
+ETF Abril/25 Índice Certo:
+1 ano: GOLD11
+2 anos: GOLD11 ; ACWI11 ; TECK11 ; USAL11 ; IVVB11 ; SPXI11 ; NASD11 ; MILL11
+3 anos: GOLD11 ; TECK11 ; NASD11 ; SPXI11 ; IVVB11 ; USAL11 ; ACWI11 ; MILL11
+5 anos: Nenhum
+8 anos: IVVB11
+10 anos: Nenhum

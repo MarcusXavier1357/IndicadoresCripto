@@ -1,0 +1,384 @@
+/* ESTILOS EXISTENTES */
+.filter-checkboxes {
+    max-height: 350px;
+    overflow-y: auto;
+    padding: 10px;
+    border: 1px solid #444;
+    border-radius: 8px;
+    background-color: #23272b;
+    color: #fff !important;
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+/* NOVO ESTILO PARA OS CARDS DE KPI */
+.kpi-card {
+    background-color: #111 !important;
+    border: 1px solid #333 !important;
+    border-radius: 8px !important;
+}
+.kpi-card .card-title {
+    font-weight: bold !important;
+    font-size: 1.1rem !important;
+    color: #f8f9fa !important;
+}
+.kpi-card .card-text {
+    font-weight: bold !important;
+    font-size: 1.8rem !important;
+}
+.disabled-chart {
+    opacity: 0.3;
+    border: 1px dashed #555;
+    border-radius: 5px;
+}
+
+/* Suavizar cards de filtro */
+.card {
+    background-color: #23272b !important;
+    border-radius: 8px !important;
+    border: 1px solid #333 !important;
+    color: #fff !important;
+}
+
+.card-header, .card-body, .card-title, .card-text, .card-header h5 {
+    color: #fff !important;
+}
+
+.custom-control-label {
+    color: #fff !important;
+}
+
+/* Suavizar fundo dos checklists */
+.custom-control-input:checked~.custom-control-label::before {
+    background-color: #007bff !important;
+    border-color: #007bff !important;
+}
+
+/* Novo estilo para transição de seções */
+.dashboard-section {
+    transition: all 0.3s ease-in-out;
+}
+
+/* Layout moderno para dashboard com barra lateral */
+.app-container {
+    min-height: 100vh;
+    background: linear-gradient(120deg, #23272b 0%, #181a1b 100%);
+    display: flex;
+    flex-direction: row;
+}
+
+.sidebar {
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100vh;
+    z-index: 1100;
+    transition: width 0.3s cubic-bezier(.4,2,.6,1);
+    width: 370px;
+    min-width: 310px;
+    max-width: 450px;
+    background: #181a1b;
+    color: #fff;
+    padding: 32px 24px 24px 24px;
+    border-radius: 0 18px 18px 0;
+    box-shadow: 2px 0 16px 0 #00000033;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    overflow-y: auto !important;
+    overflow-x: visible !important;
+    position: relative;
+}
+
+.sidebar-header {
+    margin-bottom: 2rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.sidebar-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: #fff;
+    margin: 0;
+}
+
+.sidebar-filters {
+    margin-top: 2rem;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+/* Filtros modernos */
+.filter-checkboxes {
+    max-height: 200px;
+    overflow-y: auto;
+    padding: 10px;
+    border: 1px solid #444;
+    border-radius: 8px;
+    background-color: #23272b;
+    color: #fff !important;
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.card {
+    background-color: #23272b !important;
+    border-radius: 12px !important;
+    border: 1px solid #333 !important;
+    color: #fff !important;
+    box-shadow: 0 2px 12px 0 #00000022;
+    margin-bottom: 0.5rem;
+}
+
+.card-header, .card-body, .card-title, .card-text, .card-header h5 {
+    color: #fff !important;
+}
+
+.custom-control-label {
+    color: #fff !important;
+}
+
+.sidebar .btn, .sidebar .btn-primary {
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.sidebar .btn-secondary {
+    background: #23272b;
+    color: #fff;
+    border: 1px solid #444;
+}
+
+/* Conteúdo principal */
+.main-content {
+    flex: 1 1 0%;
+    padding: 36px 36px 36px 36px;
+    background: linear-gradient(120deg, #23272b 0%, #181a1b 100%);
+    min-height: 100vh;
+    border-radius: 18px 0 0 18px;
+    box-shadow: 0 0 24px 0 #00000022;
+    overflow-x: auto;
+}
+
+.main-kpis {
+    margin-bottom: 2rem;
+}
+
+.main-graphs {
+    margin-bottom: 2rem;
+}
+
+.main-table {
+    background: #181a1b;
+    border-radius: 12px;
+    box-shadow: 0 2px 12px 0 #00000022;
+    padding: 24px;
+}
+
+/* Gráficos responsivos */
+.dashboard-section .dash-graph {
+    min-height: 350px;
+    background: #23272b;
+    border-radius: 12px;
+    box-shadow: 0 2px 12px 0 #00000022;
+    padding: 12px;
+}
+
+/* Responsividade */
+@media (max-width: 900px) {
+    .app-container {
+        flex-direction: column;
+    }
+    .sidebar {
+        min-width: 100vw;
+        max-width: 100vw;
+        border-radius: 0 0 18px 18px;
+        height: auto;
+        position: static;
+        box-shadow: 0 2px 12px 0 #00000022;
+    }
+    .main-content {
+        border-radius: 0;
+        padding: 18px 6px;
+    }
+    .dashboard-section .d-flex {
+        flex-direction: column !important;
+        gap: 1.5rem !important;
+    }
+}
+
+/* Botão de upload mais destacado */
+.sidebar .btn-primary {
+    background: linear-gradient(90deg, #007bff 0%, #00c6ff 100%);
+    border: none;
+    color: #fff;
+    font-weight: 700;
+    box-shadow: 0 2px 8px 0 #007bff33;
+}
+
+/* Filtros retráteis com animação */
+.collapsible-filter {
+    position: relative;
+    width: 100%;
+    transition: box-shadow 0.2s;
+    overflow: visible !important;
+}
+.collapsible-filter:hover {
+    z-index: 20;
+    box-shadow: 0 4px 24px 0 #00000055;
+}
+.collapsible-filter .card-header {
+    cursor: pointer;
+    user-select: none;
+    background: #23272b !important;
+    border-radius: 8px 8px 0 0 !important;
+    transition: background 0.2s;
+}
+.collapsible-content {
+    max-height: 0;
+    opacity: 0;
+    overflow: visible !important;
+    transition: max-height 0.5s cubic-bezier(0.4,0,0.2,1), opacity 0.3s;
+    will-change: max-height, opacity;
+    pointer-events: none;
+}
+.collapsible-filter:hover .collapsible-content,
+.collapsible-filter:focus-within .collapsible-content {
+    max-height: 500px;
+    opacity: 1;
+    pointer-events: auto;
+}
+.collapsible-filter .card {
+    margin-bottom: 0;
+}
+
+/* Opcional: animação suave para botões dentro do filtro */
+.collapsible-content .btn {
+    transition: background 0.2s, color 0.2s;
+}
+
+/* Scrollbar escura para barra lateral */
+.sidebar::-webkit-scrollbar {
+    width: 8px;
+}
+.sidebar::-webkit-scrollbar-track {
+    background: #181a1b;
+    border-radius: 4px;
+}
+.sidebar::-webkit-scrollbar-thumb {
+    background: #444;
+    border-radius: 4px;
+}
+.sidebar::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+/* Para Firefox */
+.sidebar {
+    scrollbar-width: thin;
+    scrollbar-color: #444 #181a1b;
+}
+
+/* CALENDÁRIO COM Z-INDEX MÁXIMO */
+.collapsible-filter .DateRangePicker_picker {
+    z-index: 1050 !important;
+}
+
+/* ===================== AJUSTES CALENDÁRIO ===================== */
+.DateInput, .DateRangePicker, .DateRangePicker_picker, .DatePickerSingle, .DatePickerSingle_picker {
+    z-index: 1050 !important;
+}
+
+/* ===================== SCROLLBAR ESCURO PARA TABELAS ===================== */
+.dash-table-container .dash-spreadsheet-container,
+.dash-table-container .dash-table {
+    scrollbar-color: #222 #444;
+    scrollbar-width: thin;
+}
+
+.dash-table-container .dash-spreadsheet-container::-webkit-scrollbar,
+.dash-table-container .dash-table::-webkit-scrollbar {
+    width: 8px;
+    background: #222;
+}
+.dash-table-container .dash-spreadsheet-container::-webkit-scrollbar-thumb,
+.dash-table-container .dash-table::-webkit-scrollbar-thumb {
+    background: #444;
+    border-radius: 4px;
+}
+
+/* Garante que o container do filtro de período não corte o calendário */
+#periodo-filter, .periodo-filter {
+    overflow: visible !important;
+    position: relative;
+}
+
+/* Ajusta o popover do calendário */
+.DateRangePicker_picker,
+.DatePickerSingle_picker {
+    display: none !important;
+}
+
+/* Ajusta o calendário para não ficar muito largo */
+.DayPicker,
+.DayPicker__withBorder {
+    max-width: 320px !important;
+    min-width: 260px !important;
+    width: 100% !important;
+}
+
+/* Centraliza o calendário abaixo do input */
+.DateRangePicker_picker__directionLeft,
+.DatePickerSingle_picker__directionLeft {
+    left: 0 !important;
+    right: auto !important;
+    margin-left: 0 !important;
+}
+
+/* Corrige possíveis fundos escuros herdados */
+.DateRangePicker_picker,
+.DatePickerSingle_picker {
+    background: #fff !important;
+}
+
+/* Sidebar aumenta ao abrir o calendário (usando :has para navegadores compatíveis) */
+.sidebar:has(.DateRangePicker_picker[style*="display: block"]),
+.sidebar:has(.DatePickerSingle_picker[style*="display: block"]) {
+    width: 370px !important;
+    max-width: 420px;
+}
+
+/* .DateRangePicker_picker[style*="display: block"] {
+    position: fixed !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    z-index: 3000 !important;
+    box-shadow: 0 8px 32px 0 #00000088 !important;
+    background: #23272b !important;
+    border-radius: 12px !important;
+    border: 1px solid #444 !important;
+    width: 400px !important;
+    max-width: 90vw !important;
+    max-height: 80vh !important;
+    overflow-y: auto !important;
+} */
+
+.DateRangePicker_picker {
+    position: fixed !important;
+    top: 60px !important;
+    left: -40px !important;
+    transform: none !important;
+    z-index: 1050 !important;
+}
+
+.dashboard-section .d-flex {
+    flex-wrap: wrap !important;
+}

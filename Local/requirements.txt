@@ -1,0 +1,9 @@
+customtkinter
+pandas
+openpyxl
+numpy
+matplotlib
+scipy
+nolds
+python-dotenv
+nasdaq-data-link
