@@ -1348,7 +1348,7 @@ class MelaoIndexApp(ctk.CTk):
             y = np.log(df[ativo].values)
             regressao = linregress(x, y)
             
-            rentabilidade_anual = np.exp(regressao.slope*365) - 1
+            rentabilidade_anual = np.exp(regressao.slope*365) - 1 # type: ignore
             
             return rentabilidade_anual, regressao.slope
             
