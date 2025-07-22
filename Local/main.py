@@ -859,7 +859,7 @@ class MelaoIndexApp(ctk.CTk):
         
         # Tabela de resultados
         columns = ("Ativo", "Período", "Rentabilidade Anual (%)", "MDD (%)", 
-                "MDD*", "Índice Melão", "Índice de Sharpe", "Inflação Anual (%)", "Slope", "Hurst (DFA)")
+                "MDD*", "Índice Melão", "Índice de Sharpe", "Inflação Anual (%)", "Slope", "Hurst (DFA)", "Mayer Multiple")
         self.tree = ttk.Treeview(
             master=results_section,
             columns=columns,
@@ -1246,7 +1246,8 @@ class MelaoIndexApp(ctk.CTk):
                 import pandas
                 df = pandas.DataFrame(self.current_results, 
                                  columns=["Ativo", "Período", "Rentabilidade Anual (%)", "MDD (%)", 
-                                        "MDD*", "Índice Melão", "Índice de Sharpe", "Inflação Anual (%)", "Slope", "Hurst (DFA)"])  # type: ignore
+                                        "MDD*", "Índice Melão", "Índice de Sharpe", "Inflação Anual (%)", 
+                                        "Slope", "Hurst (DFA)", "Mayer Multiple"])  # type: ignore
                 df.to_excel(file_path, index=False)
                 messagebox.showinfo("Sucesso", f"Resultados exportados para {os.path.basename(file_path)}")
         except Exception as e:
@@ -1385,6 +1386,28 @@ class MelaoIndexApp(ctk.CTk):
             print(f"Erro no cálculo DFA: {str(e)}")
             return np.nan
     
+    def calculate_mayer_multiple(self, df_periodo, ativo):
+        """Calcula o Mayer Multiple (preço atual / média móvel de 200 dias)"""
+        try:
+            # Garantir que temos dados suficientes
+            if len(df_periodo) < 200:
+                return float('nan')
+            
+            # Calcular média móvel de 200 dias
+            df_periodo['MA_200'] = df_periodo[ativo].rolling(window=200).mean()
+            
+            # Obter último preço e última média
+            ultimo_preco = df_periodo[ativo].iloc[-1]
+            ultima_ma200 = df_periodo['MA_200'].iloc[-1]
+            
+            # Calcular Mayer Multiple
+            mayer_multiple = ultimo_preco / ultima_ma200
+            return mayer_multiple
+            
+        except Exception as e:
+            print(f"Erro no cálculo do Mayer Multiple: {str(e)}")
+            return float('nan')
+    
     def calculate_indexes(self):
         if self.df_cotacoes is None:
             return
@@ -1503,6 +1526,9 @@ class MelaoIndexApp(ctk.CTk):
                     except Exception as e:
                         print(f"Erro cálculo Hurst {ativo}: {str(e)}")
 
+                    # Calcular Mayer Multiple
+                    mayer_multiple = self.calculate_mayer_multiple(df_periodo, ativo)
+
                     resultados.append([
                         ativo,
                         f"{periodo} anos",
@@ -1513,7 +1539,8 @@ class MelaoIndexApp(ctk.CTk):
                         f"{sharpe:.4f}",
                         f"{inflacao_anual*100:.2f}",
                         f"{coef_angular:.6f}",
-                        f"{hurst_dfa:.4f}" if not np.isnan(hurst_dfa) else "N/A"  # type: ignore
+                        f"{hurst_dfa:.4f}" if not np.isnan(hurst_dfa) else "N/A",  # type: ignore
+                        f"{mayer_multiple:.4f}" if not np.isnan(mayer_multiple) else "N/A"
                     ])
             
             self.current_results = resultados
@@ -1709,7 +1736,8 @@ class MelaoIndexApp(ctk.CTk):
                 import pandas
                 df = pandas.DataFrame(resultados_filtrados, 
                                  columns=["Ativo", "Período", "Rentabilidade Anual (%)", "MDD (%)", 
-                                        "MDD*", "Índice Melão", "Índice de Sharpe", "Inflação Anual (%)", "Slope", "Hurst (DFA)"])  # type: ignore
+                                        "MDD*", "Índice Melão", "Índice de Sharpe", "Inflação Anual (%)", 
+                                        "Slope", "Hurst (DFA)", "Mayer Multiple"])  # type: ignore
                 df.to_excel(file_path, index=False)
                 messagebox.showinfo("Sucesso", f"Resultados filtrados exportados para {os.path.basename(file_path)}")
         except Exception as e:
