@@ -60,6 +60,16 @@ class MelaoIndexApp(ctk.CTk):
         self.crypto_window = None
         self.after_ids = []
         self.progress_bar = None 
+        
+        # Configurações de qualidade dos dados
+        self.qualidade_config = {
+            'max_dias_atraso': 7,           # Máximo de dias de atraso permitido
+            'min_cobertura_ultimo_ano': 0.8, # Mínimo 80% de cobertura no último ano
+            'max_lacuna_consecutiva': 10,    # Máximo de dias consecutivos sem dados
+            'min_dias_disponiveis': 200,     # Mínimo de dias disponíveis no último ano
+            'max_outliers_percent': 0.05     # Máximo 5% de outliers permitidos
+        }
+        
         self.period_vars = {
             10: ctk.BooleanVar(value=True),
             8: ctk.BooleanVar(value=True),
@@ -680,6 +690,15 @@ class MelaoIndexApp(ctk.CTk):
         self.btn_inflation.pack(side="left", padx=5, pady=5)
         ToolTip(self.btn_inflation, "Defina as taxas de inflação para cada período")
 
+        self.btn_qualidade = ctk.CTkButton(
+            buttons_frame,
+            text="⚙️ Qualidade dos Dados",
+            command=self.open_quality_window,
+            width=180
+        )
+        self.btn_qualidade.pack(side="left", padx=5, pady=5)
+        ToolTip(self.btn_qualidade, "Configure os critérios de qualidade dos dados")
+
         # Botão para buscar Criptomoedas (agora atualiza dados)
         self.btn_crypto = ctk.CTkButton(
             buttons_frame,
@@ -1239,6 +1258,166 @@ class MelaoIndexApp(ctk.CTk):
             self.inflation_window.destroy()
         self.inflation_window = None
     
+    def open_quality_window(self):
+        """Abre janela para configurar critérios de qualidade dos dados"""
+        if hasattr(self, 'quality_window') and self.quality_window and self.quality_window.winfo_exists():
+            self.quality_window.lift()
+            return
+            
+        self.quality_window = ctk.CTkToplevel(self)
+        self.quality_window.title("Configurar Critérios de Qualidade dos Dados")
+        self.quality_window.geometry("500x600")
+        self.quality_window.transient(self)
+        self.quality_window.grab_set()
+        self.quality_window.protocol("WM_DELETE_WINDOW", self.close_quality_window)
+        
+        # Frame principal
+        main_frame = ctk.CTkFrame(self.quality_window)
+        main_frame.pack(fill="both", expand=True, padx=10, pady=10)
+        
+        # Título
+        ctk.CTkLabel(
+            main_frame, 
+            text="Critérios de Qualidade dos Dados",
+            font=("Arial", 16, "bold")
+        ).pack(pady=(10, 20))
+        
+        # Descrição
+        desc_text = """
+        Configure os critérios para determinar se um ativo tem dados suficientes 
+        para cálculo dos índices. Ativos que não atendam aos critérios serão 
+        automaticamente rejeitados.
+        """
+        ctk.CTkLabel(
+            main_frame,
+            text=desc_text,
+            font=("Arial", 11),
+            wraplength=450,
+            justify="left"
+        ).pack(pady=(0, 20))
+        
+        # Frame para as configurações
+        config_frame = ctk.CTkFrame(main_frame)
+        config_frame.pack(fill="x", padx=20, pady=10)
+        
+        # Dicionário para armazenar as entradas
+        self.quality_entries = {}
+        
+        # Configurações
+        configs = [
+            ('max_dias_atraso', 'Máximo de dias de atraso:', '7', 'Dias'),
+            ('min_cobertura_ultimo_ano', 'Cobertura mínima no último ano:', '0.8', '% (0.8 = 80%)'),
+            ('max_lacuna_consecutiva', 'Máximo de dias consecutivos sem dados:', '10', 'Dias'),
+            ('min_dias_disponiveis', 'Mínimo de dias disponíveis no último ano:', '200', 'Dias'),
+            ('max_outliers_percent', 'Máximo de outliers permitidos:', '0.05', '% (0.05 = 5%)')
+        ]
+        
+        for key, label, default_value, unit in configs:
+            row_frame = ctk.CTkFrame(config_frame)
+            row_frame.pack(fill="x", padx=10, pady=5)
+            
+            ctk.CTkLabel(
+                row_frame, 
+                text=label,
+                width=300,
+                anchor="w"
+            ).pack(side="left", padx=(10, 5))
+            
+            entry = ctk.CTkEntry(row_frame, width=100)
+            entry.pack(side="left", padx=(0, 5))
+            entry.insert(0, str(self.qualidade_config[key]))
+            self.quality_entries[key] = entry
+            
+            ctk.CTkLabel(
+                row_frame,
+                text=unit,
+                width=80,
+                anchor="w"
+            ).pack(side="left", padx=(0, 10))
+        
+        # Frame para botões
+        buttons_frame = ctk.CTkFrame(main_frame)
+        buttons_frame.pack(fill="x", padx=10, pady=20)
+        
+        # Botão Salvar
+        btn_save = ctk.CTkButton(
+            buttons_frame,
+            text="Salvar Configurações",
+            command=self.save_quality_config
+        )
+        btn_save.pack(side="right", padx=10)
+        
+        # Botão Restaurar Padrões
+        btn_default = ctk.CTkButton(
+            buttons_frame,
+            text="Restaurar Padrões",
+            command=self.restore_default_quality
+        )
+        btn_default.pack(side="right", padx=10)
+        
+        # Botão Cancelar
+        btn_cancel = ctk.CTkButton(
+            buttons_frame,
+            text="Cancelar",
+            command=self.close_quality_window
+        )
+        btn_cancel.pack(side="right", padx=10)
+    
+    def close_quality_window(self):
+        """Fecha a janela de configuração de qualidade"""
+        if hasattr(self, 'quality_window') and self.quality_window and self.quality_window.winfo_exists():
+            self.quality_window.grab_release()
+            self.quality_window.destroy()
+        self.quality_window = None
+    
+    def save_quality_config(self):
+        """Salva as configurações de qualidade dos dados"""
+        try:
+            for key, entry in self.quality_entries.items():
+                try:
+                    value = float(entry.get())
+                    if key == 'min_cobertura_ultimo_ano' or key == 'max_outliers_percent':
+                        if value < 0 or value > 1:
+                            raise ValueError(f"Valor deve estar entre 0 e 1 para {key}")
+                    else:
+                        if value <= 0:
+                            raise ValueError(f"Valor deve ser positivo para {key}")
+                    
+                    self.qualidade_config[key] = value
+                    
+                except ValueError as e:
+                    messagebox.showerror("Erro", f"Valor inválido para {key}: {str(e)}")
+                    return
+            
+            messagebox.showinfo("Sucesso", "Configurações de qualidade salvas com sucesso!")
+            self.close_quality_window()
+            
+        except Exception as e:
+            messagebox.showerror("Erro", f"Erro ao salvar configurações: {str(e)}")
+    
+    def restore_default_quality(self):
+        """Restaura as configurações padrão de qualidade"""
+        try:
+            default_config = {
+                'max_dias_atraso': 7,
+                'min_cobertura_ultimo_ano': 0.8,
+                'max_lacuna_consecutiva': 10,
+                'min_dias_disponiveis': 200,
+                'max_outliers_percent': 0.05
+            }
+            
+            self.qualidade_config = default_config.copy()
+            
+            # Atualizar campos da interface
+            for key, entry in self.quality_entries.items():
+                entry.delete(0, 'end')
+                entry.insert(0, str(default_config[key]))
+            
+            messagebox.showinfo("Sucesso", "Configurações padrão restauradas!")
+            
+        except Exception as e:
+            messagebox.showerror("Erro", f"Erro ao restaurar padrões: {str(e)}")
+    
     def load_inflation_to_entries(self):
         for period, entry in self.inflation_entries.items():
             value = self.inflacao.get(period, 0.0) * 100
@@ -1500,6 +1679,73 @@ class MelaoIndexApp(ctk.CTk):
             print(f"Erro no cálculo da correlação BTCUSD para {ativo}: {str(e)}")
             return float('nan')
     
+    def verificar_qualidade_dados_ultimo_ano(self, df_ativo, ativo, data_final):
+        """
+        Verifica a qualidade dos dados no último ano para determinar se os índices devem ser calculados
+        
+        Critérios:
+        1. Dados devem estar atualizados até no máximo 7 dias atrás
+        2. Último ano deve ter pelo menos 200 dias úteis (80% de cobertura)
+        3. Não deve haver lacunas maiores que 5 dias consecutivos
+        4. Dados devem ser consistentes (sem valores extremos anômalos)
+        """
+        try:
+            # Critério 1: Verificar se os dados estão atualizados
+            data_mais_recente = df_ativo['Data'].max()
+            dias_atraso = (data_final - data_mais_recente).days
+            
+            if dias_atraso > self.qualidade_config['max_dias_atraso']:
+                return False, f"Dados desatualizados: {dias_atraso} dias de atraso"
+            
+            # Critério 2: Verificar cobertura no último ano
+            data_inicio_ultimo_ano = data_final - timedelta(days=365)
+            df_ultimo_ano = df_ativo[df_ativo['Data'] >= data_inicio_ultimo_ano].copy()
+            
+            if df_ultimo_ano.empty:
+                return False, "Sem dados no último ano"
+            
+            # Calcular dias úteis esperados (aproximadamente 252 dias úteis por ano)
+            dias_esperados = 252
+            dias_disponiveis = len(df_ultimo_ano)
+            cobertura = dias_disponiveis / dias_esperados
+            
+            if cobertura < self.qualidade_config['min_cobertura_ultimo_ano']:
+                return False, f"Cobertura insuficiente: {cobertura:.1%} ({dias_disponiveis}/{dias_esperados} dias)"
+            
+            # Critério 3: Verificar lacunas consecutivas
+            df_ultimo_ano = df_ultimo_ano.sort_values('Data')
+            df_ultimo_ano['Dias_Diff'] = df_ultimo_ano['Data'].diff().dt.days
+            
+            # Verificar se há lacunas maiores que 5 dias consecutivos
+            lacunas_grandes = df_ultimo_ano[df_ultimo_ano['Dias_Diff'] > 5]
+            if not lacunas_grandes.empty:
+                max_lacuna = lacunas_grandes['Dias_Diff'].max()
+                if max_lacuna > self.qualidade_config['max_lacuna_consecutiva']:
+                    return False, f"Lacuna muito grande: {max_lacuna} dias consecutivos sem dados"
+            
+            # Critério 4: Verificar consistência dos dados (sem valores extremos anômalos)
+            precos = df_ultimo_ano[ativo].dropna()
+            if len(precos) < 30:
+                return False, "Dados insuficientes para análise de consistência"
+            
+            # Calcular estatísticas para detectar outliers
+            media = precos.mean()
+            std = precos.std()
+            
+            # Verificar se há valores muito extremos (mais de 5 desvios padrão da média)
+            outliers = precos[(precos < media - 5*std) | (precos > media + 5*std)]
+            if len(outliers) > len(precos) * self.qualidade_config['max_outliers_percent']:
+                return False, f"Muitos valores anômalos: {len(outliers)} outliers detectados"
+            
+            # Critério 5: Verificar se há dados suficientes para cálculos confiáveis
+            if dias_disponiveis < self.qualidade_config['min_dias_disponiveis']:
+                return False, f"Dados insuficientes: apenas {dias_disponiveis} dias disponíveis"
+            
+            return True, f"Dados válidos: {cobertura:.1%} de cobertura, {dias_disponiveis} dias, {dias_atraso} dias de atraso"
+            
+        except Exception as e:
+            return False, f"Erro na verificação: {str(e)}"
+    
     def calculate_indexes(self):
         if self.df_cotacoes is None:
             return
@@ -1520,6 +1766,9 @@ class MelaoIndexApp(ctk.CTk):
             
             total_ativos = len(ativos)
             ativos_processados = 0
+            ativos_aprovados = 0
+            ativos_rejeitados = 0
+            motivos_rejeicao = {}
             
             for ativo in ativos:
                 ativos_processados += 1
@@ -1531,10 +1780,32 @@ class MelaoIndexApp(ctk.CTk):
                 if df_ativo.empty:
                     continue
                 
-                # NOVA VERIFICAÇÃO: só processa se o ativo tiver dados até pelo menos uma semana antes da data final
-                data_mais_recente = df_ativo['Data'].max()
-                if data_mais_recente < (data_final - timedelta(days=7)):
+                # VERIFICAÇÃO ROBUSTA DE QUALIDADE DOS DADOS NO ÚLTIMO ANO
+                dados_validos, mensagem_qualidade = self.verificar_qualidade_dados_ultimo_ano(df_ativo, ativo, data_final)
+                if not dados_validos:
+                    print(f"Ativo {ativo} rejeitado: {mensagem_qualidade}")
+                    ativos_rejeitados += 1
+                    motivos_rejeicao[ativo] = mensagem_qualidade
                     continue
+                
+                print(f"Ativo {ativo} aprovado: {mensagem_qualidade}")
+                ativos_aprovados += 1
+                
+                # VERIFICAÇÃO ESPECÍFICA PARA BTCUSD (necessário para correlação)
+                if ativo != 'BTCUSD':
+                    df_btc = self.df_cotacoes[['Data', 'BTCUSD']].dropna(subset=['BTCUSD'])
+                    if not df_btc.empty:
+                        btc_validos, mensagem_btc = self.verificar_qualidade_dados_ultimo_ano(df_btc, 'BTCUSD', data_final)
+                        if not btc_validos:
+                            print(f"Ativo {ativo} rejeitado: BTCUSD com dados insuficientes - {mensagem_btc}")
+                            ativos_rejeitados += 1
+                            motivos_rejeicao[ativo] = f"BTCUSD insuficiente: {mensagem_btc}"
+                            continue
+                    else:
+                        print(f"Ativo {ativo} rejeitado: BTCUSD não disponível")
+                        ativos_rejeitados += 1
+                        motivos_rejeicao[ativo] = "BTCUSD não disponível"
+                        continue
                 
                 min_data_ativo = df_ativo['Data'].min()
                 
@@ -1643,8 +1914,26 @@ class MelaoIndexApp(ctk.CTk):
             self.current_results = resultados
             self.update_table(resultados)
             self.btn_export.configure(state="normal")
+            
+            # Mostrar estatísticas de qualidade dos dados
             if self.status_bar is not None:
-                self.status_bar.configure(text="Cálculos concluídos com sucesso!")
+                status_msg = f"Cálculos concluídos! {ativos_aprovados} ativos aprovados, {ativos_rejeitados} rejeitados"
+                if ativos_rejeitados > 0:
+                    status_msg += f" - {len(resultados)} resultados válidos"
+                self.status_bar.configure(text=status_msg)
+            
+            # Mostrar resumo no console
+            print(f"\n=== RESUMO DA QUALIDADE DOS DADOS ===")
+            print(f"Total de ativos processados: {total_ativos}")
+            print(f"Ativos aprovados: {ativos_aprovados}")
+            print(f"Ativos rejeitados: {ativos_rejeitados}")
+            print(f"Resultados válidos gerados: {len(resultados)}")
+            
+            if motivos_rejeicao:
+                print(f"\nMotivos de rejeição:")
+                for ativo, motivo in motivos_rejeicao.items():
+                    print(f"  {ativo}: {motivo}")
+            print("=" * 50)
             
         except Exception as e:
             messagebox.showerror("Erro", f"Erro nos cálculos: {str(e)}")
