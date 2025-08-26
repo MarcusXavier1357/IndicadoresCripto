@@ -859,7 +859,7 @@ class MelaoIndexApp(ctk.CTk):
         
         # Tabela de resultados
         columns = ("Ativo", "Período", "Rentabilidade Anual (%)", "MDD (%)", 
-                "MDD*", "Índice Melão", "Índice de Sharpe", "Inflação Anual (%)", "Slope", "Hurst (DFA)", "Mayer Multiple")
+                "MDD*", "Índice Melão", "Índice de Sharpe", "Inflação Anual (%)", "Slope", "R²", "Hurst (DFA)", "Mayer Multiple", "Correlação BTCUSD")
         self.tree = ttk.Treeview(
             master=results_section,
             columns=columns,
@@ -868,7 +868,12 @@ class MelaoIndexApp(ctk.CTk):
         )
         for col in columns:
             self.tree.heading(col, text=col, command=lambda c=col: self.sort_by_column(c, False))
-            self.tree.column(col, width=120 if col not in ["Ativo", "Período"] else 90, anchor="center")
+            if col in ["Ativo", "Período"]:
+                self.tree.column(col, width=90, anchor="center")
+            elif col == "R²":
+                self.tree.column(col, width=80, anchor="center")
+            else:
+                self.tree.column(col, width=120, anchor="center")
         scrollbar = ttk.Scrollbar(results_section, orient="vertical", command=self.tree.yview)
         self.tree.configure(yscrollcommand=scrollbar.set)
         self.tree.pack(side="left", fill="both", expand=True)
@@ -883,15 +888,29 @@ class MelaoIndexApp(ctk.CTk):
         controls_frame.pack(fill="x", padx=10, pady=5)
         ctk.CTkLabel(controls_frame, text="Selecionar Ativo:").pack(side="left", padx=(10,5))
 
-        self.asset_var = ctk.StringVar()
-        self.asset_combo = ctk.CTkComboBox(
-            controls_frame,
-            variable=self.asset_var,
-            state="disabled",
-            width=120
+        # Frame para seleção de ativos com scroll
+        self.asset_selection_frame = ctk.CTkFrame(controls_frame)
+        self.asset_selection_frame.pack(side="left", padx=5, pady=5)
+        
+        # Configurar tamanho fixo para o frame de seleção
+        self.asset_selection_frame.configure(width=220, height=200)
+        
+        ctk.CTkLabel(self.asset_selection_frame, text="Ativos:", font=("Arial", 10, "bold")).pack(anchor="w", padx=5, pady=(5,0))
+        
+        # Frame scrollável para os ativos
+        self.assets_scroll_frame = ctk.CTkScrollableFrame(
+            self.asset_selection_frame,
+            width=200,
+            height=140,
+            orientation="vertical"
         )
-        self.asset_combo.pack(side="left", padx=5, pady=5)
-        # Não adicionar tooltip aqui (CTkComboBox pode não suportar corretamente)
+        self.assets_scroll_frame.pack(fill="both", padx=5, pady=5)
+        
+        # Variável para armazenar o ativo selecionado
+        self.asset_var = ctk.StringVar()
+        
+        # Dicionário para armazenar os botões dos ativos
+        self.asset_buttons = {}
 
         self.btn_plot = ctk.CTkButton(
             controls_frame,
@@ -1072,24 +1091,57 @@ class MelaoIndexApp(ctk.CTk):
             raise e
     
     def update_asset_combobox(self):
-        """Atualiza a lista de ativos no combobox com base no DataFrame de cotações."""
+        """Atualiza a lista de ativos criando botões para cada ativo."""
         if self.df_cotacoes is not None:
+            # Limpar botões existentes
+            for button in self.asset_buttons.values():
+                button.destroy()
+            self.asset_buttons.clear()
+            
             # Obter todos os nomes de colunas exceto 'Data'
             ativos = [col for col in self.df_cotacoes.columns if col != 'Data']
             
-            # Atualizar combobox
-            self.asset_combo.configure(values=ativos)
-            
-            # Configurar seleção inicial se houver ativos
+            # Criar botões para cada ativo
             if ativos:
+                for ativo in ativos:
+                    # Criar botão para o ativo
+                    btn = ctk.CTkButton(
+                        self.assets_scroll_frame,
+                        text=ativo,
+                        width=180,
+                        height=30,
+                        font=("Arial", 10),
+                        command=lambda a=ativo: self.select_asset(a)
+                    )
+                    btn.pack(fill="x", padx=2, pady=1)
+                    self.asset_buttons[ativo] = btn
+                
+                # Configurar seleção inicial
                 current_value = self.asset_var.get()
                 if current_value not in ativos:
                     self.asset_var.set(ativos[0])
-                self.asset_combo.configure(state="readonly")
+                    self.highlight_selected_asset(ativos[0])
+                else:
+                    self.highlight_selected_asset(current_value)
+                
                 self.btn_plot.configure(state="normal")
             else:
-                self.asset_combo.configure(state="disabled")
                 self.btn_plot.configure(state="disabled")
+    
+    def select_asset(self, ativo):
+        """Seleciona um ativo e atualiza a interface"""
+        self.asset_var.set(ativo)
+        self.highlight_selected_asset(ativo)
+    
+    def highlight_selected_asset(self, ativo):
+        """Destaca visualmente o ativo selecionado"""
+        # Resetar todos os botões para cor padrão
+        for btn in self.asset_buttons.values():
+            btn.configure(fg_color=("gray75", "gray25"))  # Cor padrão
+        
+        # Destacar o botão selecionado
+        if ativo in self.asset_buttons:
+            self.asset_buttons[ativo].configure(fg_color=("lightblue", "darkblue"))
                 
     def load_file(self):
         file_path = ctk.filedialog.askopenfilename(
@@ -1247,7 +1299,7 @@ class MelaoIndexApp(ctk.CTk):
                 df = pandas.DataFrame(self.current_results, 
                                  columns=["Ativo", "Período", "Rentabilidade Anual (%)", "MDD (%)", 
                                         "MDD*", "Índice Melão", "Índice de Sharpe", "Inflação Anual (%)", 
-                                        "Slope", "Hurst (DFA)", "Mayer Multiple"])  # type: ignore
+                                        "Slope", "R²", "Hurst (DFA)", "Mayer Multiple", "Correlação BTCUSD"])  # type: ignore
                 df.to_excel(file_path, index=False)
                 messagebox.showinfo("Sucesso", f"Resultados exportados para {os.path.basename(file_path)}")
         except Exception as e:
@@ -1351,7 +1403,13 @@ class MelaoIndexApp(ctk.CTk):
             
             rentabilidade_anual = np.exp(regressao.slope*365) - 1 # type: ignore
             
-            return rentabilidade_anual, regressao.slope
+            # Calcular R²
+            y_pred = regressao.slope * x + regressao.intercept
+            ss_res = np.sum((y - y_pred) ** 2)
+            ss_tot = np.sum((y - np.mean(y)) ** 2)
+            r_squared = 1 - (ss_res / ss_tot) if ss_tot != 0 else 0
+            
+            return rentabilidade_anual, regressao.slope, r_squared
             
         except Exception as e:
             messagebox.showerror("Erro", f"Erro no cálculo de rentabilidade: {str(e)}")
@@ -1406,6 +1464,40 @@ class MelaoIndexApp(ctk.CTk):
             
         except Exception as e:
             print(f"Erro no cálculo do Mayer Multiple: {str(e)}")
+            return float('nan')
+    
+    def calculate_btc_correlation(self, df_periodo, ativo):
+        """Calcula a correlação de Pearson entre um ativo e o BTCUSD"""
+        try:
+            # Verificar se BTCUSD está disponível nos dados
+            if 'BTCUSD' not in df_periodo.columns or ativo == 'BTCUSD':
+                return float('nan')
+            
+            # Obter dados do ativo e BTCUSD para o período
+            df_corr = df_periodo[['Data', ativo, 'BTCUSD']].dropna()
+            
+            # Verificar se temos dados suficientes (mínimo 30 pontos para correlação confiável)
+            if len(df_corr) < 30:
+                return float('nan')
+            
+            # Calcular retornos logarítmicos diários
+            df_corr[f'{ativo}_returns'] = np.log(df_corr[ativo] / df_corr[ativo].shift(1))
+            df_corr['BTCUSD_returns'] = np.log(df_corr['BTCUSD'] / df_corr['BTCUSD'].shift(1))
+            
+            # Remover primeira linha (NaN devido ao shift)
+            df_corr = df_corr.dropna()
+            
+            # Verificar se ainda temos dados suficientes após remoção de NaNs
+            if len(df_corr) < 30:
+                return float('nan')
+            
+            # Calcular correlação de Pearson entre os retornos
+            correlation = df_corr[f'{ativo}_returns'].corr(df_corr['BTCUSD_returns'])
+            
+            return correlation if not np.isnan(correlation) else float('nan')
+            
+        except Exception as e:
+            print(f"Erro no cálculo da correlação BTCUSD para {ativo}: {str(e)}")
             return float('nan')
     
     def calculate_indexes(self):
@@ -1467,7 +1559,7 @@ class MelaoIndexApp(ctk.CTk):
                     if resultado_rent is None:
                         continue
                     
-                    rentabilidade_anual, coef_angular = resultado_rent
+                    rentabilidade_anual, coef_angular, r_squared = resultado_rent
                     
                     # Calcular MDD
                     df_periodo['Maximo'] = df_periodo[ativo].cummax()  # type: ignore
@@ -1529,6 +1621,9 @@ class MelaoIndexApp(ctk.CTk):
                     # Calcular Mayer Multiple
                     mayer_multiple = self.calculate_mayer_multiple(df_periodo, ativo)
 
+                    # Calcular correlação com BTCUSD
+                    correlação_btc = self.calculate_btc_correlation(df_periodo, ativo)
+
                     resultados.append([
                         ativo,
                         f"{periodo} anos",
@@ -1539,8 +1634,10 @@ class MelaoIndexApp(ctk.CTk):
                         f"{sharpe:.4f}",
                         f"{inflacao_anual*100:.2f}",
                         f"{coef_angular:.6f}",
+                        f"{r_squared:.4f}",
                         f"{hurst_dfa:.4f}" if not np.isnan(hurst_dfa) else "N/A",  # type: ignore
-                        f"{mayer_multiple:.4f}" if not np.isnan(mayer_multiple) else "N/A"
+                        f"{mayer_multiple:.4f}" if not np.isnan(mayer_multiple) else "N/A",
+                        f"{correlação_btc:.4f}" if not np.isnan(correlação_btc) else "N/A"
                     ])
             
             self.current_results = resultados
@@ -1647,7 +1744,7 @@ class MelaoIndexApp(ctk.CTk):
                 return False
             
             # Hurst
-            hurst_str = resultado[8]  # Hurst está na posição 8
+            hurst_str = resultado[10]  # Hurst está na posição 10
             if hurst_str != "N/A":
                 hurst = float(hurst_str)
                 if filtros['hurst_min'] is not None and hurst < filtros['hurst_min']:
@@ -1737,7 +1834,7 @@ class MelaoIndexApp(ctk.CTk):
                 df = pandas.DataFrame(resultados_filtrados, 
                                  columns=["Ativo", "Período", "Rentabilidade Anual (%)", "MDD (%)", 
                                         "MDD*", "Índice Melão", "Índice de Sharpe", "Inflação Anual (%)", 
-                                        "Slope", "Hurst (DFA)", "Mayer Multiple"])  # type: ignore
+                                        "Slope", "R²", "Hurst (DFA)", "Mayer Multiple", "Correlação BTCUSD"])  # type: ignore
                 df.to_excel(file_path, index=False)
                 messagebox.showinfo("Sucesso", f"Resultados filtrados exportados para {os.path.basename(file_path)}")
         except Exception as e:
